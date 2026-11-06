@@ -25,7 +25,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[blocked]` needs the s
 - [x] 1.2a Memory store: markdown files (profile, preferences, areas, people, log) with safe paths
 - [x] 1.2b FTS5 index: rebuild + incremental update + search
 - [x] 1.2c Memory git commits on write/forget (isolated git env; caps: 500 files, 8 MB)
-- [ ] 1.3  Jarvis MCP server (stdio) with `memory_read`, `memory_write`, `memory_search`, `memory_forget`
+- [x] 1.3  Jarvis MCP server (stdio): `memory_read/write/append/search/list`, audited; no automatic forget. Verified live with `claude -p`
 - [x] 1.4a Claude runner: build `claude -p` args, spawn, parse stream-json events (hardened: env allowlist, process-group kill, system prompt via 0600 file, user-only settings)
 - [ ] 1.4b Prompt builder: persona + profile + top memory hits
 - [ ] 1.4c Orchestrator: turn handling, session resume, transcript saved, usage recorded

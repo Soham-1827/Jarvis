@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     def db_path(self) -> Path:
         return self.data_dir / "jarvis.db"
 
+    @property
+    def memory_dir(self) -> Path:
+        return self.data_dir / "memory"
+
 
 def load_settings() -> Settings:
     """Read settings from the environment. Raises pydantic.ValidationError on bad config."""

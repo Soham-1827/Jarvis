@@ -231,8 +231,8 @@ Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 
 ### Phase 1, weeks 2 to 3: brain core + text chat
 - [x] 1.1 SQLite schema + repository layer: conversations, messages, jobs, approvals, audit
-- [ ] 1.2 Memory store: markdown repo, FTS5 index, `memory_read/write`, onboarding chat to seed profile
-- [ ] 1.3 Jarvis MCP server with `memory_*` tools
+- [x] 1.2 Memory store: markdown repo, FTS5 index, `memory_read/write`, onboarding chat to seed profile
+- [x] 1.3 Jarvis MCP server with `memory_*` tools
 - [ ] 1.4 Orchestrator: `claude -p` stream-json runner, session resume, persona + memory prompt, transcript saved
 - [ ] 1.5 WebSocket chat API with device-token auth
 - [ ] 1.6 PWA v0: chat screen, installable on iPhone Home Screen
