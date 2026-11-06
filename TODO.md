@@ -32,7 +32,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[blocked]` needs the s
 - [x] 1.5  WebSocket chat API: device tokens (hashed), `jarvis-admin`, origin + Tailscale identity checks, per-device limits, revocation of live sockets
 - [x] 1.6  PWA v0: pairing + chat, usage gauges, light/dark, strict CSP, offline shell. Verified in Edge at 390x844 against real Claude
 - [x] 1.7  `jarvis-chat` terminal client (token from env or 0600 file). Verified live
-- [ ] 1.8  Onboarding chat that seeds `profile.md`
+- [x] 1.8  Onboarding: while `profile.md` is empty, Jarvis interviews Soham one question at a time and saves answers
 
 ## Follow-ups from reviews (do in the phase named)
 

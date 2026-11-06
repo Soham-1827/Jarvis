@@ -41,9 +41,18 @@ def test_memory_cannot_close_the_fence() -> None:
     assert prompt.count("</memory>") == 1
 
 
-def test_missing_profile_prompts_onboarding_hint() -> None:
+def test_missing_profile_starts_onboarding() -> None:
+    from jarvis.brain.core.prompt import ONBOARDING
+
     prompt = build_system_prompt(None, None, [], NOW, "terminal")
-    assert "no profile yet" in prompt.lower()
+    assert ONBOARDING in prompt
+    assert prompt.index(ONBOARDING) < prompt.index("<memory")  # instructions, not fenced data
+
+
+def test_existing_profile_skips_onboarding() -> None:
+    from jarvis.brain.core.prompt import ONBOARDING
+
+    assert ONBOARDING not in build_system_prompt("Soham", None, [], NOW, "terminal")
 
 
 def test_sections_are_truncated() -> None:

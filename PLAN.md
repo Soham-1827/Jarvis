@@ -236,7 +236,7 @@ Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 - [x] 1.4 Orchestrator: `claude -p` stream-json runner, session resume, persona + memory prompt, transcript saved
 - [x] 1.5 WebSocket chat API with device-token auth
 - [x] 1.6 PWA v0: chat screen, installable on iPhone Home Screen
-- [ ] 1.7 Terminal client (`jarvis chat`) for testing
+- [x] 1.7 Terminal client (`jarvis chat`) for testing
 - **Gate:** chat with Jarvis from the iPhone PWA and it answers using something from your profile.
 
 ### Phase 2, weeks 4 to 5: coding workers + approvals (usable v1)
