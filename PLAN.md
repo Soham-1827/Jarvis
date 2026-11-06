@@ -230,7 +230,7 @@ Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 - **Gate:** from the iPhone over Tailscale, `https://<server>.ts.net/health` returns ok, and `claude -p "hello"` works on the server.
 
 ### Phase 1, weeks 2 to 3: brain core + text chat
-- [ ] 1.1 SQLite schema + repository layer: conversations, messages, jobs, approvals, audit
+- [x] 1.1 SQLite schema + repository layer: conversations, messages, jobs, approvals, audit
 - [ ] 1.2 Memory store: markdown repo, FTS5 index, `memory_read/write`, onboarding chat to seed profile
 - [ ] 1.3 Jarvis MCP server with `memory_*` tools
 - [ ] 1.4 Orchestrator: `claude -p` stream-json runner, session resume, persona + memory prompt, transcript saved

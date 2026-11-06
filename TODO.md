@@ -20,8 +20,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[blocked]` needs the s
 
 ## Phase 1: brain core + text chat
 
-- [ ] 1.1a SQLite schema + migration runner (`schema_version`)
-- [ ] 1.1b Repositories: conversations, messages, jobs, approvals, audit (immutable dataclasses in/out)
+- [x] 1.1a SQLite schema + migration runner (`PRAGMA user_version`), locked `Database` wrapper
+- [x] 1.1b Repositories: conversations, messages, jobs, approvals, audit (immutable dataclasses in/out)
 - [ ] 1.2a Memory store: markdown files (profile, preferences, areas, people, log) with safe paths
 - [ ] 1.2b FTS5 index: rebuild + incremental update + search
 - [ ] 1.2c Memory git commits on write/forget
