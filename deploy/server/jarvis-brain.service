@@ -1,0 +1,43 @@
+[Unit]
+Description=Jarvis brain
+Wants=network-online.target tailscaled.service
+After=network-online.target tailscaled.service
+
+[Service]
+Type=simple
+User=jarvis
+Group=jarvis
+WorkingDirectory=/opt/jarvis
+EnvironmentFile=/etc/jarvis/env
+ExecStart=/opt/jarvis/.venv/bin/jarvis-brain
+Restart=always
+RestartSec=5
+
+# Filesystem: everything read-only except the data dir, job dirs and Claude Code's own state.
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/jarvis /srv/jarvis -/home/jarvis/.claude -/home/jarvis/.claude.json
+PrivateTmp=true
+UMask=0027
+
+# Privileges and kernel surface.
+NoNewPrivileges=true
+CapabilityBoundingSet=
+RestrictSUIDSGID=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectProc=invisible
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+SystemCallFilter=@system-service
+SystemCallArchitectures=native
+# Not set: MemoryDenyWriteExecute (breaks Node's JIT, which Claude Code needs) and
+# RestrictNamespaces (revisit in Phase 2: Claude Code's Bash sandbox may need namespaces).
+# NoNewPrivileges blocks sudo, so Phase 2 workers get their own unit, not sudo from here.
+
+[Install]
+WantedBy=multi-user.target

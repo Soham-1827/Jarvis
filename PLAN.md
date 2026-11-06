@@ -220,8 +220,8 @@ Weeks assume part-time work alongside classes. Each phase ends with a **gate** y
 Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 
 ### Phase 0, week 1: infrastructure and skeleton
-- [ ] 0.1 Repo skeleton: `pyproject.toml` (uv, extras), `src/jarvis/` packages, ruff + pytest config
-- [ ] 0.2 GitHub Actions CI: ruff + pytest on push
+- [x] 0.1 Repo skeleton: `pyproject.toml` (uv, extras), `src/jarvis/` packages, ruff + pytest config
+- [x] 0.2 GitHub Actions CI: ruff + pytest on push
 - [ ] 0.3 Server set up: Ubuntu Server 24.04 on the M700 Tiny, BIOS power-on after AC loss, non-root `jarvis` + `jarvis-worker` users, ufw, Tailscale, SSH over tailnet only
 - [ ] 0.4 `deploy/server/setup.sh` that is re-runnable (packages, uv, node, Claude Code, dirs)
 - [ ] 0.5 Claude Code logged in on the server with the Pro plan (`claude setup-token`); headless smoke test
