@@ -48,7 +48,10 @@ def close_all(sockets: list[socket.socket]) -> None:
 
 
 def build_server(app: FastAPI, log_level: str) -> uvicorn.Server:
-    return uvicorn.Server(uvicorn.Config(app, log_level=log_level.lower(), proxy_headers=False))
+    config = uvicorn.Config(
+        app, log_level=log_level.lower(), proxy_headers=False, ws_max_size=64 * 1024
+    )
+    return uvicorn.Server(config)
 
 
 def serve(app: FastAPI, hosts: tuple[str, ...], port: int, log_level: str) -> None:

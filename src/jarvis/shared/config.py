@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     bind_hosts: tuple[str, ...] = ("127.0.0.1",)
     port: int = Field(default=8765, ge=1024, le=65535)
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    claude_bin: str | None = None
+    orchestrator_model: str | None = None
+    turn_timeout_s: float = Field(default=300.0, gt=0, le=3600)
+    # If set, `tailscale serve`'s Tailscale-User-Login header must be one of these.
+    allowed_tailscale_users: tuple[str, ...] = ()
 
     @field_validator("bind_hosts")
     @classmethod

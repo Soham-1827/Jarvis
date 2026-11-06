@@ -84,6 +84,16 @@ MIGRATIONS: tuple[str, ...] = (
         path UNINDEXED, content, tokenize='porter unicode61'
     );
     """,
+    """
+    CREATE TABLE devices (
+        id          TEXT PRIMARY KEY,
+        name        TEXT NOT NULL UNIQUE,
+        token_hash  TEXT NOT NULL UNIQUE,
+        created_at  TEXT NOT NULL,
+        last_seen   TEXT,
+        revoked_at  TEXT
+    );
+    """,
 )
 
 

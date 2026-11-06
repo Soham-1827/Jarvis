@@ -29,6 +29,7 @@ dev = [
 
 [project.scripts]
 jarvis-brain = "jarvis.brain.__main__:main"
+jarvis-admin = "jarvis.brain.admin:main"
 
 [build-system]
 requires = ["hatchling"]
