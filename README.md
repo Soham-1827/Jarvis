@@ -1,7 +1,7 @@
 # Jarvis
 
-A personal agentic assistant. An always-on brain on a small VPS plans and dispatches work to Claude Code,
-Codex and Gemini CLI, remembers personal context, and asks for approval on the phone before anything
+A personal agentic assistant. An always-on brain on a small home server plans and dispatches work to
+Claude Code workers, remembers personal context, and asks for approval on the phone before anything
 risky. A thin node on the Windows laptop adds voice ("Hey Jarvis"), clap-triggered scenes and app control.
 
 - Design and roadmap: [PLAN.md](PLAN.md)

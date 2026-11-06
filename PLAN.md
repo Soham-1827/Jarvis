@@ -13,19 +13,20 @@ A personal agentic harness that is always on, knows Soham's context, and gets re
 apps, the web and code. Reachable by voice on the laptop and by text or voice from the iPhone.
 
 - **One front door:** laptop voice, iPhone PWA and a terminal client share one brain, one memory, one job list.
-- **Does work, not just chat:** dispatches coding jobs to Claude Code, Codex and Gemini CLI, researches the web, drives the laptop.
+- **Does work, not just chat:** dispatches coding jobs to Claude Code workers, researches the web, drives the laptop.
 - **Knows you:** persistent profile and memory every agent reads.
 - **Safe by default:** risky actions wait for a one-tap approval on the phone.
-- **Uses existing subscriptions:** Claude Pro, ChatGPT Pro, Gemini Pro via their official headless CLIs.
+- **Uses the Claude subscription:** everything runs through Claude Code headless (`claude -p`) on the Pro login. Claude is the only model provider.
 - **Built to grow:** new tools drop in as MCP servers or plugins without touching the core.
 
 ## 2. Decisions
 
 | Topic | Decision |
 |---|---|
-| Topology | **Brain on an always-on VPS, thin node on the laptop** (see section 3) |
-| VPS | Hetzner-class Linux box, ~4 GB RAM, Ubuntu 24.04, ~$5/mo |
-| Private network | Tailscale on VPS, laptop and iPhone. No public inbound ports at all (SSH over Tailscale too) |
+| Topology | **Brain on an always-on home server, thin node on the laptop** (see section 3) |
+| Server | Lenovo ThinkCentre M700 Tiny (i3-6100T, 8 GB, 128 GB SSD), Ubuntu Server 24.04, wired Ethernet. A VPS works too: the brain only needs Ubuntu + Tailscale |
+| Model provider | **Claude only** (Pro plan). No Codex, Gemini or local models |
+| Private network | Tailscale on server, laptop and iPhone. No public inbound ports at all (SSH over Tailscale too) |
 | Laptop | Windows, node runs in native Windows Python 3.12, started by Task Scheduler at logon |
 | Phone | iPhone, PWA on Home Screen served over `tailscale serve` (HTTPS), push via ntfy iOS app |
 | Main uses | Coding, school, job search, daily life |
@@ -34,7 +35,7 @@ apps, the web and code. Reachable by voice on the laptop and by text or voice fr
 | Personality | Classic JARVIS, polite British butler |
 | Voice wake | "Hey Jarvis" wake word plus a hotkey, double clap for scenes |
 | Orchestrator LLM | `claude -p` (Claude Code headless) on the subscription login, not the Agent SDK with an API key |
-| Data access | All three providers may see private repos, school and email |
+| Data access | Claude may see private repos, school and email |
 | Language/stack | Python 3.12, uv, FastAPI + WebSockets, SQLite, pytest, ruff |
 
 ## 3. Architecture
@@ -45,17 +46,17 @@ apps, the web and code. Reachable by voice on the laptop and by text or voice fr
                  |                   scenes, window/app control         Slack, Canvas, job boards
                  |  HTTPS (tailnet)        |  outbound WebSocket (tailnet)        |
                  v                         v                                      v
-   +------------------------------- Jarvis brain (VPS, systemd) ---------------------------------+
+   +------------------------------- Jarvis brain (server, systemd) ------------------------------+
    |  API (FastAPI, WS)  ->  Orchestrator (claude -p + Jarvis MCP tools)                          |
    |                          |-- Memory (markdown git repo + SQLite FTS)                          |
-   |                          |-- Router (Claude / Codex / Gemini)                                 |
+   |                          |-- Usage governor (Pro limits, job concurrency, model choice)       |
    |                          |-- Jobs, approvals, audit log (SQLite)                              |
    |                          |-- Node registry (which laptop capabilities are online)            |
    +--------------------------------------------------------------------------------------------+
                  |                         |                                      |
          Coding workers             Apps and data                        Web and screen
-   Claude Code, Codex, Gemini   MCP servers (GitHub, Gmail,        search API, Playwright
-   in git worktrees on the VPS  Calendar, Slack...)                (VPS); desktop control via node
+   Claude Code workers          MCP servers (GitHub, Gmail,        Claude WebSearch/WebFetch,
+   in git worktrees (server)    Calendar, Slack...)                Playwright; desktop via node
 ```
 
 Rules:
@@ -77,7 +78,7 @@ The orchestrator plans and delegates; it does not edit code itself.
 
 | Tool | What it does |
 |---|---|
-| `agent_start(task, repo?, worker?)` | Start a Claude Code / Codex / Gemini job in a git worktree, return a job id at once |
+| `agent_start(task, repo?, model?)` | Start a Claude Code job in a git worktree, return a job id at once |
 | `agent_status`, `agent_result` | List jobs, fetch a job's output |
 | `agent_send(job, message)` | Answer a worker's question or add a follow-up |
 | `agent_stop(job)` | Cancel a job |
@@ -85,29 +86,34 @@ The orchestrator plans and delegates; it does not edit code itself.
 | `approve_request(kind, summary, payload)` | Push an approval card to the phone and wait |
 | `schedule(task, when)` | One-off or recurring jobs |
 | `node_call(capability, args)` | Run something on the laptop (scenes, TTS, app control) |
-| `web_search`, `web_fetch` | Research (Phase 4) |
+| Web research | Claude Code's built-in `WebSearch` / `WebFetch` (no extra search API) |
 
 ### 3.2 Coding workers
 
 - Repos cloned under `/srv/jarvis/repos`, each job gets a worktree under `/srv/jarvis/work/<job-id>`.
-- Spawned with `asyncio` subprocesses: `claude -p --permission-mode acceptEdits`,
-  `codex exec --sandbox workspace-write`, `gemini -p`. Never `--dangerously-skip-permissions`.
+- Spawned with `asyncio` subprocesses: `claude -p --permission-mode acceptEdits --output-format stream-json`.
+  Never `--dangerously-skip-permissions`.
 - Claude Code hooks in the worker config report back to the brain:
   - `PreToolUse` on Bash: commands outside the worktree, installs and `git push` call the brain's
     approval endpoint and block until approved/denied.
   - `Notification` and `Stop`: post status to the supervisor instead of scraping stdout.
 - Workers run as a separate Unix user (`jarvis-worker`) with access only to `repos/` and `work/`.
 
-### 3.3 Router (v1 rules)
+### 3.3 Usage governor (Claude Pro limits)
 
-1. Conversation and planning: Claude (`claude -p`). Quick classification may use `--model haiku`.
-2. Anything that edits code: Claude Code first, Codex when Claude is rate limited or for a second opinion.
-3. "Read all of this" over ~200k tokens: Gemini CLI.
-4. Important changes: one provider writes, a different one reviews (Phase 5).
+Orchestrator and all workers share one Pro rolling allowance, so usage is the main constraint.
+
+1. Quick replies, intent classification, summaries: `--model haiku`.
+2. Conversation, planning, coding: the default Claude Code model; heavier model only when asked.
+3. One coding job at a time by default; extra jobs queue (configurable).
+4. Track usage per turn/job from stream-json output; show it in the PWA; when a limit is hit, pause
+   the queue, tell Soham when it resets, and resume automatically.
+5. Second opinions on important changes: a fresh Claude session reviews the diff (Phase 5).
+6. If limits bite regularly, the answer is upgrading to Max, not adding providers.
 
 ### 3.4 Memory
 
-- Plain Markdown in a **separate private git repo** (`jarvis-memory`) on the VPS, never in this code repo.
+- Plain Markdown in a **separate private git repo** (`jarvis-memory`) on the server, never in this code repo.
   - `profile.md`, `preferences.md`, `areas/<project>.md`, `people/<name>.md`, `log/YYYY-MM-DD.md`.
 - Index: SQLite FTS5 over those files (embeddings deferred until FTS proves insufficient).
 - Fill: after each conversation a background pass proposes facts; only things Soham stated are saved.
@@ -170,11 +176,11 @@ The brain can run code from a phone, so it is treated as a remote shell.
 | Send email/messages, post anything, calendar invites | Ask on phone, show the exact text |
 | Purchases, payments, logins, deleting data | Never automatic; Jarvis prepares, Soham does it |
 
-- **Network:** VPS firewall denies all inbound on the public interface; brain binds to `127.0.0.1` and
+- **Network:** server firewall (ufw) denies all inbound except on `tailscale0`; brain binds to `127.0.0.1` and
   the Tailscale IP only. SSH only over Tailscale.
 - **Prompt injection:** web pages, emails and repo files are data, never instructions; anything they
   "ask" for goes to the approval queue.
-- **Secrets:** VPS: `/etc/jarvis/env` (root-owned, 0600) loaded by systemd; laptop: Windows Credential
+- **Secrets:** server: `/etc/jarvis/env` (root-owned, 0600) loaded by systemd; laptop: Windows Credential
   Manager. Never in memory files, prompts, logs or git.
 - **Audit:** every tool call and approval recorded in SQLite, viewable from the phone.
 - **Data boundaries:** work material stays off Jarvis; passwords and tokens never go to models.
@@ -188,9 +194,9 @@ jarvis/
     shared/               protocol models (pydantic) for brain <-> node <-> PWA
     brain/
       api/                FastAPI app, websocket, auth
-      core/               orchestrator, router, supervisor
+      core/               orchestrator, usage governor, supervisor
       mcp_server/         Jarvis MCP tools exposed to claude -p
-      workers/            claude_code.py, codex.py, gemini.py
+      workers/            claude_code.py (job runner, hooks, worktrees)
       memory/             markdown store + FTS index
       approvals/          queue, policy, ntfy
       jobs/               SQLite models, scheduler
@@ -202,7 +208,7 @@ jarvis/
       os_hooks/           pywinauto, powershell helpers
   web/                    PWA static files
   deploy/
-    vps/                  setup.sh, systemd units, tailscale serve config
+    server/               setup.sh, systemd units, tailscale serve config
     windows/              task scheduler xml, power settings script
   tests/
   docs/
@@ -216,12 +222,12 @@ Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 ### Phase 0, week 1: infrastructure and skeleton
 - [ ] 0.1 Repo skeleton: `pyproject.toml` (uv, extras), `src/jarvis/` packages, ruff + pytest config
 - [ ] 0.2 GitHub Actions CI: ruff + pytest on push
-- [ ] 0.3 VPS provisioned (Ubuntu 24.04), non-root `jarvis` + `jarvis-worker` users, ufw, Tailscale, SSH over tailnet only
-- [ ] 0.4 `deploy/vps/setup.sh` that is re-runnable (packages, uv, node, CLIs, dirs)
-- [ ] 0.5 CLIs logged in on VPS with subscriptions: `claude setup-token`, Codex device login, Gemini login; smoke test each headless
+- [ ] 0.3 Server set up: Ubuntu Server 24.04 on the M700 Tiny, BIOS power-on after AC loss, non-root `jarvis` + `jarvis-worker` users, ufw, Tailscale, SSH over tailnet only
+- [ ] 0.4 `deploy/server/setup.sh` that is re-runnable (packages, uv, node, Claude Code, dirs)
+- [ ] 0.5 Claude Code logged in on the server with the Pro plan (`claude setup-token`); headless smoke test
 - [ ] 0.6 Minimal FastAPI `/health` as a systemd unit, exposed with `tailscale serve`
 - [ ] 0.7 Verify open questions: Remote Control on the plan, subscription terms for headless personal use, Pro rate limits observed
-- **Gate:** from the iPhone over Tailscale, `https://<vps>.ts.net/health` returns ok, and `claude -p "hello"` works on the VPS.
+- **Gate:** from the iPhone over Tailscale, `https://<server>.ts.net/health` returns ok, and `claude -p "hello"` works on the server.
 
 ### Phase 1, weeks 2 to 3: brain core + text chat
 - [ ] 1.1 SQLite schema + repository layer: conversations, messages, jobs, approvals, audit
@@ -235,7 +241,8 @@ Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 
 ### Phase 2, weeks 4 to 5: coding workers + approvals (usable v1)
 - [ ] 2.1 Repo manager: clone/fetch, worktree per job, cleanup
-- [ ] 2.2 Worker runners for Claude Code and Codex with streamed logs
+- [ ] 2.2 Claude Code worker runner with streamed logs
+- [ ] 2.2b Usage governor: per-job usage tracking, one-job-at-a-time queue, pause/resume on limits
 - [ ] 2.3 `agent_start/status/result/send/stop` MCP tools
 - [ ] 2.4 Supervisor: detect waiting-for-input, failure, retry, timeout
 - [ ] 2.5 Approval queue + policy engine + `PreToolUse` hook calling it
@@ -257,14 +264,13 @@ Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 - [ ] 4.1 MCP registry (GitHub, Gmail, Calendar, Slack) shared by orchestrator and workers
 - [ ] 4.2 Watcher framework + Gmail, Calendar, GitHub, Canvas watchers
 - [ ] 4.3 Scheduler: morning brief, nightly repo checks
-- [ ] 4.4 Web research tools (search API + fetch, Gemini grounding)
-- [ ] 4.5 Gemini CLI worker + router rules
+- [ ] 4.4 Web research via Claude Code WebSearch/WebFetch, with results cited in replies
 - [ ] 4.6 Playwright browser agent with a dedicated profile
 - **Gate:** morning brief and watcher pings arrive on schedule for a full week.
 
 ### Phase 5, week 10 on: autonomy and polish
-- [ ] 5.1 Router fallbacks on rate limits
-- [ ] 5.2 Cross-provider code review
+- [ ] 5.1 Smarter usage budgeting (daily budget, defer non-urgent jobs to after reset)
+- [ ] 5.2 Second-opinion review by a fresh Claude session
 - [ ] 5.3 Computer use for API-less desktop apps (via node)
 - [ ] 5.4 Eval suite of real tasks, usage dashboard
 - [ ] 5.5 Plugin interface for new skills
@@ -273,18 +279,19 @@ Work happens on a `phase-N` branch, merged to `main` when the gate passes.
 
 | PDF | Now | Why |
 |---|---|---|
-| Everything on the laptop | Brain on VPS, thin laptop node | Phone, watchers and coding keep working when the laptop is off |
+| Everything on the laptop | Brain on an always-on home server, thin laptop node | Phone, watchers and coding keep working when the laptop is off |
+| Claude + Codex + Gemini + router | Claude only, with a usage governor | Single subscription; simpler workers and tests |
 | NSSM Windows service | Task Scheduler at logon for the node | Session-0 services cannot use the mic or control the desktop |
 | Next.js PWA | Plain HTML/JS PWA served by FastAPI | Fewer moving parts; upgrade when the UI earns it |
-| Ollama local model | Dropped for v1 | A 4 GB VPS cannot host a useful model; Haiku/Gemini cover quick intents |
+| Ollama local model | Dropped | The server cannot host a useful model; Haiku covers quick intents |
 | Embeddings + FTS | FTS5 first | YAGNI until search quality is a problem |
-| Windows Credential Manager | systemd env file on VPS, Credential Manager on laptop | Secrets live where the process runs |
+| Windows Credential Manager | systemd env file on server, Credential Manager on laptop | Secrets live where the process runs |
 | Agent SDK open question | `claude -p` headless | Stays on the Pro subscription |
 | Phase 1 included scenes | Scenes moved to Phase 3 with the node | Brain must exist before the laptop has something to talk to |
 
 ## 8. Open questions
 
 - Is Claude Code Remote Control available on the Pro plan? (check in 0.7)
-- How fast do Pro rolling limits run out with one orchestrator + one worker? Decides how early the router fallback is needed.
+- How fast do Pro rolling limits run out with one orchestrator + one worker? Decides the default job concurrency and whether Max is needed.
 - Canvas: API token available from the school, or browser agent only?
-- Which repos should the VPS clone first?
+- Which repos should the server clone first?

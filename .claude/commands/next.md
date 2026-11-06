@@ -8,7 +8,7 @@ You are developing Jarvis. Run this loop for exactly ONE task, then stop and rep
 ## 1. Orient
 - Read `HANDOVER.md`, then the current phase in `PLAN.md`.
 - Task = `$ARGUMENTS` if given, else the first unchecked `- [ ]` task in the current phase.
-- If the task is blocked on Soham (accounts, VPS access, phone setup), say what is needed and stop.
+- If the task is blocked on Soham (accounts, server access, phone setup), say what is needed and stop.
 - Ensure you are on branch `phase-N` (create it from `main` if missing). Working tree must be clean.
 
 ## 2. Plan
