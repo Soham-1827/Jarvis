@@ -68,6 +68,9 @@ class ClaudeRequest:
     append_system_prompt: str | None = None
     mcp_config: Path | None = None
     allowed_tools: tuple[str, ...] = ()
+    # None: Claude Code's default built-in tools. (): no built-in tools at all.
+    builtin_tools: tuple[str, ...] | None = None
+    disallowed_tools: tuple[str, ...] = ()
     permission_mode: str = "default"
     cwd: Path | None = None
     timeout_s: float = 300.0
@@ -86,7 +89,7 @@ class ClaudeRequest:
         for name, value in (("model", self.model), ("resume_session", self.resume_session)):
             if value is not None and not _TOKEN.fullmatch(value):
                 raise ValueError(f"invalid {name} {value!r}")
-        for tool in self.allowed_tools:
+        for tool in (*self.allowed_tools, *(self.builtin_tools or ()), *self.disallowed_tools):
             if not _TOOL.fullmatch(tool):
                 raise ValueError(f"invalid tool name {tool!r}")
 
@@ -170,8 +173,12 @@ def build_argv(
         argv.append(f"--append-system-prompt-file={system_prompt_file}")
     if req.mcp_config:
         argv += [f"--mcp-config={req.mcp_config}", "--strict-mcp-config"]
+    if req.builtin_tools is not None:
+        argv.append(f"--tools={','.join(req.builtin_tools)}")
     if req.allowed_tools:
         argv.append(f"--allowedTools={','.join(req.allowed_tools)}")
+    if req.disallowed_tools:
+        argv.append(f"--disallowedTools={','.join(req.disallowed_tools)}")
     return argv
 
 

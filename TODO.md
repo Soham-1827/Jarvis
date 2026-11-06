@@ -27,8 +27,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[blocked]` needs the s
 - [x] 1.2c Memory git commits on write/forget (isolated git env; caps: 500 files, 8 MB)
 - [x] 1.3  Jarvis MCP server (stdio): `memory_read/write/append/search/list`, audited; no automatic forget. Verified live with `claude -p`
 - [x] 1.4a Claude runner: build `claude -p` args, spawn, parse stream-json events (hardened: env allowlist, process-group kill, system prompt via 0600 file, user-only settings)
-- [ ] 1.4b Prompt builder: persona + profile + top memory hits
-- [ ] 1.4c Orchestrator: turn handling, session resume, transcript saved, usage recorded
+- [x] 1.4b Prompt builder: persona + profile + top memory hits (memory fenced as data)
+- [x] 1.4c Orchestrator: turn handling, session resume (fresh retry), transcript + usage saved; memory tools only, no built-ins. Verified live
 - [ ] 1.5  WebSocket chat API with device-token auth
 - [ ] 1.6  PWA v0: chat screen, manifest, service worker, installable on iPhone
 - [ ] 1.7  `jarvis chat` terminal client

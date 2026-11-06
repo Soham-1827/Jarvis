@@ -228,3 +228,10 @@ async def test_consumer_closing_early_kills_child(
         async for _ in events:
             break
     assert time.monotonic() - start < 5
+
+
+def test_build_argv_tool_restrictions() -> None:
+    req = ClaudeRequest(prompt="x", builtin_tools=(), disallowed_tools=("WebFetch", "Bash"))
+    argv = build_argv(req, "/bin/claude")
+    assert "--tools=" in argv
+    assert "--disallowedTools=WebFetch,Bash" in argv
