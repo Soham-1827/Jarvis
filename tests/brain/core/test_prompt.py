@@ -46,7 +46,7 @@ def test_missing_profile_starts_onboarding() -> None:
 
     prompt = build_system_prompt(None, None, [], NOW, "terminal")
     assert ONBOARDING in prompt
-    assert prompt.index(ONBOARDING) < prompt.index("<memory")  # instructions, not fenced data
+    assert prompt.index(ONBOARDING) < prompt.index("<memory note=")  # instructions, not fenced data
 
 
 def test_existing_profile_skips_onboarding() -> None:
