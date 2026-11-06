@@ -22,9 +22,9 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[blocked]` needs the s
 
 - [x] 1.1a SQLite schema + migration runner (`PRAGMA user_version`), locked `Database` wrapper
 - [x] 1.1b Repositories: conversations, messages, jobs, approvals, audit (immutable dataclasses in/out)
-- [ ] 1.2a Memory store: markdown files (profile, preferences, areas, people, log) with safe paths
-- [ ] 1.2b FTS5 index: rebuild + incremental update + search
-- [ ] 1.2c Memory git commits on write/forget
+- [x] 1.2a Memory store: markdown files (profile, preferences, areas, people, log) with safe paths
+- [x] 1.2b FTS5 index: rebuild + incremental update + search
+- [x] 1.2c Memory git commits on write/forget (isolated git env; caps: 500 files, 8 MB)
 - [ ] 1.3  Jarvis MCP server (stdio) with `memory_read`, `memory_write`, `memory_search`, `memory_forget`
 - [ ] 1.4a Claude runner: build `claude -p` args, spawn, parse stream-json events
 - [ ] 1.4b Prompt builder: persona + profile + top memory hits
