@@ -26,10 +26,20 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[blocked]` needs the s
 - [x] 1.2b FTS5 index: rebuild + incremental update + search
 - [x] 1.2c Memory git commits on write/forget (isolated git env; caps: 500 files, 8 MB)
 - [ ] 1.3  Jarvis MCP server (stdio) with `memory_read`, `memory_write`, `memory_search`, `memory_forget`
-- [ ] 1.4a Claude runner: build `claude -p` args, spawn, parse stream-json events
+- [x] 1.4a Claude runner: build `claude -p` args, spawn, parse stream-json events (hardened: env allowlist, process-group kill, system prompt via 0600 file, user-only settings)
 - [ ] 1.4b Prompt builder: persona + profile + top memory hits
 - [ ] 1.4c Orchestrator: turn handling, session resume, transcript saved, usage recorded
 - [ ] 1.5  WebSocket chat API with device-token auth
 - [ ] 1.6  PWA v0: chat screen, manifest, service worker, installable on iPhone
 - [ ] 1.7  `jarvis chat` terminal client
 - [ ] 1.8  Onboarding chat that seeds `profile.md`
+
+## Follow-ups from reviews (do in the phase named)
+
+- [ ] (Phase 2) Workers: scoped tool patterns like `Bash(git status:*)` need a wider tool-name validator; add `--disallowedTools` for workers
+- [ ] (Phase 2) Jobs: `claim_next()` with guarded UPDATE, heartbeat + crash recovery for jobs left `running`
+- [ ] (Phase 2) Workers in their own systemd unit as `jarvis-worker`, no access to `/etc/jarvis`, no secrets in env
+- [ ] (Phase 1.5) Every non-health endpoint authenticated: device token + `Tailscale-User-Login` check
+- [ ] (Later) Runner timeout counts consumer time between events; switch to an idle/read timeout if it bites
+- [ ] (Later) `forget` keeps git history; add an approval-gated purge of the memory repo
+- [ ] (Later) CI actions pinned by SHA
