@@ -30,7 +30,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[blocked]` needs the s
 - [x] 1.4b Prompt builder: persona + profile + top memory hits (memory fenced as data)
 - [x] 1.4c Orchestrator: turn handling, session resume (fresh retry), transcript + usage saved; memory tools only, no built-ins. Verified live
 - [x] 1.5  WebSocket chat API: device tokens (hashed), `jarvis-admin`, origin + Tailscale identity checks, per-device limits, revocation of live sockets
-- [ ] 1.6  PWA v0: chat screen, manifest, service worker, installable on iPhone
+- [x] 1.6  PWA v0: pairing + chat, usage gauges, light/dark, strict CSP, offline shell. Verified in Edge at 390x844 against real Claude
 - [ ] 1.7  `jarvis chat` terminal client
 - [ ] 1.8  Onboarding chat that seeds `profile.md`
 

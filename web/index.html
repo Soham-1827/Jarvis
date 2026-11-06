@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#efe7d6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1c18" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jarvis">
+  <title>Jarvis</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" href="/icon-192.png">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="crest" aria-hidden="true">J</div>
+    <div class="title">
+      <h1>Jarvis</h1>
+      <p id="status" class="status" data-state="offline" role="status" aria-live="polite">At rest</p>
+    </div>
+    <div class="gauges" aria-label="Claude usage">
+      <div class="gauge" id="gauge-5h" title="Five-hour window">
+        <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="track" cx="18" cy="18" r="15"/><circle class="fill" cx="18" cy="18" r="15"/></svg>
+        <span class="gauge-label">5h</span>
+      </div>
+      <div class="gauge" id="gauge-7d" title="Seven-day window">
+        <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="track" cx="18" cy="18" r="15"/><circle class="fill" cx="18" cy="18" r="15"/></svg>
+        <span class="gauge-label">7d</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="pair" class="pair" hidden>
+    <section class="card" aria-labelledby="pair-heading">
+      <p class="eyebrow">A word of introduction</p>
+      <h2 id="pair-heading">Good evening.<br>May I have your card?</h2>
+      <p class="lede">Paste the device token from <code>jarvis-admin add iphone</code>. It stays on this phone only.</p>
+      <form id="pair-form" autocomplete="off">
+        <label for="token" class="visually-hidden">Device token</label>
+        <input id="token" name="token" type="password" inputmode="text" spellcheck="false" required minlength="20" placeholder="Device token">
+        <button type="submit" class="btn">Present card</button>
+      </form>
+    </section>
+  </main>
+
+  <main id="chat" class="chat" hidden>
+    <ol id="log" class="log" aria-live="polite" aria-label="Conversation"></ol>
+    <div id="thinking" class="thinking" hidden aria-hidden="true"><span></span><span></span><span></span></div>
+  </main>
+
+  <form id="composer" class="composer" hidden>
+    <button type="button" id="new-convo" class="icon-btn" aria-label="New conversation" title="New conversation">&#x2726;</button>
+    <label for="input" class="visually-hidden">Message</label>
+    <textarea id="input" rows="1" maxlength="20000" placeholder="At your service…" enterkeyhint="send"></textarea>
+    <button type="submit" id="send" class="send" aria-label="Send">&#x2192;</button>
+  </form>
+</body>
+</html>
